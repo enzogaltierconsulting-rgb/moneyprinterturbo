@@ -336,7 +336,10 @@ def search_videos_pexels(
         response = r.json()
         video_items = []
         if "videos" not in response:
-            logger.error("pexels video search returned an unsupported response")
+            logger.error(
+                "pexels video search returned an unsupported response: "
+                f"status={r.status_code}, body={str(response)[:300]!r}"
+            )
             return video_items
         videos = response["videos"]
         # loop through each video in the result
