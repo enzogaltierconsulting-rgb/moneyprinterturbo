@@ -78,6 +78,35 @@ st.set_page_config(
 )
 
 
+def _enforce_webui_password():
+    """当设置了 MPT_WEBUI_PASSWORD 时，在渲染页面其余部分之前要求输入密码。
+
+    未设置该环境变量时保持原有行为（本地/局域网使用无需登录）。项目本身
+    没有其它访问控制，一旦部署到公网（例如 Railway），任何拿到链接的人
+    都能读取/修改已保存的付费 API Key 并触发付费视频生成，因此对公网部署
+    强烈建议设置这个变量。
+    """
+    required_password = os.environ.get("MPT_WEBUI_PASSWORD", "")
+    if not required_password:
+        return
+    if st.session_state.get("webui_password_ok"):
+        return
+    st.title("MoneyPrinterTurbo 🔒")
+    entered = st.text_input(
+        "Mot de passe / Password", type="password", key="webui_password_input"
+    )
+    if entered:
+        if entered == required_password:
+            st.session_state["webui_password_ok"] = True
+            st.rerun()
+        else:
+            st.error("Mot de passe incorrect / Incorrect password")
+    st.stop()
+
+
+_enforce_webui_password()
+
+
 # Streamlit 1.59 会在页面右上角默认展示 Deploy、skills nudge 等平台入口。
 # MoneyPrinterTurbo 是面向终端用户的本地工具，这些入口会造成顶部大块空白，
 # 也会让新用户误以为需要安装额外组件。这里统一隐藏 Streamlit 平台工具栏，
